@@ -277,6 +277,7 @@ func Serve(eventHandler EventHandler, protoAddr string, opts ...Option) (err err
 		logger logging.Logger
 		flush  func() error
 	)
+	//设置日志目录
 	if options.LogPath != "" {
 		if logger, flush, err = logging.CreateLoggerAsLocalFile(options.LogPath, options.LogLevel); err != nil {
 			return
@@ -296,6 +297,8 @@ func Serve(eventHandler EventHandler, protoAddr string, opts ...Option) (err err
 
 	// The maximum number of operating system threads that the Go program can use is initially set to 10000,
 	// which should also be the maximum amount of I/O event-loops locked to OS threads that users can start up.
+	////Go程序可以使用的最大操作系统线程数最初设置为10000，
+	////这也应该是用户可以启动的锁定到操作系统线程的I/O事件循环的最大数量。
 	if options.LockOSThread && options.NumEventLoop > 10000 {
 		logging.Errorf("too many event-loops under LockOSThread mode, should be less than 10,000 "+
 			"while you are trying to set up %d\n", options.NumEventLoop)
@@ -311,10 +314,11 @@ func Serve(eventHandler EventHandler, protoAddr string, opts ...Option) (err err
 		options.ReadBufferCap = toolkit.CeilToPowerOfTwo(rbc)
 		ringbuffer.MaxStreamBufferCap = options.ReadBufferCap
 	}
-
+	//返回是tcp,udp,http或者其他协议
 	network, addr := parseProtoAddr(protoAddr)
 
 	var ln *listener
+	//开启监听
 	if ln, err = initListener(network, addr, options); err != nil {
 		return
 	}

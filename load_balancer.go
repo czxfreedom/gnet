@@ -39,9 +39,9 @@ const (
 type (
 	// loadBalancer is a interface which manipulates the event-loop set.
 	loadBalancer interface {
-		register(*eventloop)
-		next(net.Addr) *eventloop
-		iterate(func(int, *eventloop) bool)
+		register(*eventloop)                //注册
+		next(net.Addr) *eventloop           //获取一个eventLoop
+		iterate(func(int, *eventloop) bool) //遍历
 		len() int
 	}
 

@@ -25,9 +25,9 @@ import (
 )
 
 type listener struct {
-	once             sync.Once
+	once             sync.Once //防止对listener多次close
 	ln               net.Listener
-	packetConn       net.PacketConn
+	packetConn       net.PacketConn //通用的面向数据包(报 Datagram)协议（UDP与其上层协议）网络连接，并发安全
 	addr             net.Addr
 	address, network string
 }

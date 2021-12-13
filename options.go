@@ -55,9 +55,11 @@ type Options struct {
 	NumEventLoop int
 
 	// LB represents the load-balancing algorithm used when assigning new connections.
+	//LB表示分配新连接时使用的负载平衡算法。
 	LB LoadBalancing
 
 	// ReuseAddr indicates whether to set up the SO_REUSEADDR socket option.
+	////ReuseAddr指示是否设置SO_ReuseAddr套接字选项。
 	ReuseAddr bool
 
 	// ReusePort indicates whether to set up the SO_REUSEPORT socket option.

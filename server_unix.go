@@ -184,10 +184,11 @@ func (svr *server) activateReactors(numEventLoop int) error {
 }
 
 func (svr *server) start(numEventLoop int) error {
+	//如果配置了reusePort或者是面向数据包(UDP)连接 走activeEventLoops
 	if svr.opts.ReusePort || svr.ln.network == "udp" {
 		return svr.activateEventLoops(numEventLoop)
 	}
-
+	//否则走activeReactors
 	return svr.activateReactors(numEventLoop)
 }
 

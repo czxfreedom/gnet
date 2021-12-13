@@ -22,14 +22,17 @@ import (
 
 func (svr *server) listenerRun(lockOSThread bool) {
 	if lockOSThread {
+		//使当前的goroutine独占地绑定到当前的操作系统线程
 		runtime.LockOSThread()
 		defer runtime.UnlockOSThread()
 	}
 
 	var err error
+	//关闭的释放动作
 	defer func() { svr.signalShutdownWithErr(err) }()
 	var buffer [0x10000]byte
 	for {
+		//UDP
 		if svr.ln.packetConn != nil {
 			// Read data from UDP socket.
 			n, addr, e := svr.ln.packetConn.ReadFrom(buffer[:])
@@ -43,6 +46,7 @@ func (svr *server) listenerRun(lockOSThread bool) {
 			c := newUDPConn(el, svr.ln.addr, addr)
 			el.ch <- packUDPConn(c, buffer[:n])
 		} else {
+			//TCP处理
 			// Accept TCP socket.
 			conn, e := svr.ln.ln.Accept()
 			if e != nil {

@@ -154,28 +154,29 @@ func serve(eventHandler EventHandler, listener *listener, options *Options, prot
 	svr.opts = options
 	svr.eventHandler = eventHandler
 	svr.ln = listener
-
+	//三种负载均衡策略
 	switch options.LB {
-	case RoundRobin:
+	case RoundRobin: //轮训
 		svr.lb = new(roundRobinLoadBalancer)
-	case LeastConnections:
+	case LeastConnections: //根据连接数
 		svr.lb = new(leastConnectionsLoadBalancer)
-	case SourceAddrHash:
+	case SourceAddrHash: //源地址哈希 同一个地址发起的请求会被分到同一个event loop处理
 		svr.lb = new(sourceAddrHashLoadBalancer)
 	}
 
 	if svr.opts.Ticker {
 		svr.tickerCtx, svr.cancelTicker = context.WithCancel(context.Background())
 	}
-	svr.cond = sync.NewCond(&sync.Mutex{})
-	svr.codec = func() ICodec {
+	svr.cond = sync.NewCond(&sync.Mutex{}) // 用于server shutdown 通知
+	svr.codec = func() ICodec {            //server TCP编码解码器初始化
 		if options.Codec == nil {
+			//默认的编/解码器
 			return new(BuiltInFrameCodec)
 		}
 		return options.Codec
 	}()
 
-	server := Server{
+	server := Server{ //其他字段初始化
 		svr:          svr,
 		Multicore:    options.Multicore,
 		Addr:         listener.addr,
@@ -183,6 +184,7 @@ func serve(eventHandler EventHandler, listener *listener, options *Options, prot
 		ReusePort:    options.ReusePort,
 		TCPKeepAlive: options.TCPKeepAlive,
 	}
+	//初始化完后调用onInitComplete方法
 	switch svr.eventHandler.OnInitComplete(server) {
 	case None:
 	case Shutdown:
@@ -190,13 +192,15 @@ func serve(eventHandler EventHandler, listener *listener, options *Options, prot
 	}
 
 	// Start all event-loops in background.
+	//开启事件循环
 	svr.startEventLoops(numEventLoop)
 
 	// Start listener in background.
+	//开启监听
 	svr.startListener()
-
+	//服务关闭做的动作
 	defer svr.stop(server)
-
+	//存储所有的链接
 	allServers.Store(protoAddr, svr)
 
 	return
