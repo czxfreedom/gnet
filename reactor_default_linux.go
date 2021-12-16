@@ -26,6 +26,7 @@ import (
 
 func (el *eventloop) activateMainReactor(lockOSThread bool) {
 	if lockOSThread {
+		//使当前的goroutine与当前OS线程完全绑定
 		runtime.LockOSThread()
 		defer runtime.UnlockOSThread()
 	}

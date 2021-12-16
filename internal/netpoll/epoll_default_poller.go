@@ -93,7 +93,9 @@ var (
 func (p *Poller) UrgentTrigger(fn queue.TaskFunc, arg interface{}) (err error) {
 	task := queue.GetTask()
 	task.Run, task.Arg = fn, arg
+	//客户端有新的请求过来了,将任务入队
 	p.priorAsyncTaskQueue.Enqueue(task)
+	//往 nfd写一个唤醒消息
 	if atomic.CompareAndSwapInt32(&p.netpollWakeSig, 0, 1) {
 		for _, err = unix.Write(p.wfd, b); err == unix.EINTR || err == unix.EAGAIN; _, err = unix.Write(p.wfd, b) {
 		}
@@ -140,6 +142,7 @@ func (p *Poller) Polling(callback func(fd int, ev uint32) error) error {
 
 		for i := 0; i < n; i++ {
 			ev := &el.events[i]
+			//对于主reacotr 有新的链接 就调用 accept, 子reactor 只会接受到 主reactor发的wakeUp信号
 			if fd := int(ev.Fd); fd != p.wfd {
 				switch err = callback(fd, ev.Events); err {
 				case nil:
@@ -149,15 +152,18 @@ func (p *Poller) Polling(callback func(fd int, ev uint32) error) error {
 					logging.Warnf("error occurs in event-loop: %v", err)
 				}
 			} else { // poller is awaken to run tasks in queues.
+				//轮询器被唤醒以在队列中运行任务。
 				wakenUp = true
 				_, _ = unix.Read(p.wfd, p.wfdBuf)
 			}
 		}
-
+		//接到唤醒的信号
 		if wakenUp {
 			wakenUp = false
 			task := p.priorAsyncTaskQueue.Dequeue()
+			//紧急任务出队
 			for ; task != nil; task = p.priorAsyncTaskQueue.Dequeue() {
+				//运行任务
 				switch err = task.Run(task.Arg); err {
 				case nil:
 				case errors.ErrServerShutdown:
@@ -165,8 +171,10 @@ func (p *Poller) Polling(callback func(fd int, ev uint32) error) error {
 				default:
 					logging.Warnf("error occurs in user-defined function, %v", err)
 				}
+				//任务清空,然后放回池子里  池化
 				queue.PutTask(task)
 			}
+			//普通任务出队
 			for i := 0; i < MaxAsyncTasksAtOneTime; i++ {
 				if task = p.asyncTaskQueue.Dequeue(); task == nil {
 					break
@@ -181,6 +189,7 @@ func (p *Poller) Polling(callback func(fd int, ev uint32) error) error {
 				queue.PutTask(task)
 			}
 			atomic.StoreInt32(&p.netpollWakeSig, 0)
+			//唤醒信号置为1
 			if (!p.asyncTaskQueue.IsEmpty() || !p.priorAsyncTaskQueue.IsEmpty()) && atomic.CompareAndSwapInt32(&p.netpollWakeSig, 0, 1) {
 				for _, err = unix.Write(p.wfd, b); err == unix.EINTR || err == unix.EAGAIN; _, err = unix.Write(p.wfd, b) {
 				}
@@ -188,8 +197,10 @@ func (p *Poller) Polling(callback func(fd int, ev uint32) error) error {
 		}
 
 		if n == el.size {
+			//事件队列扩容
 			el.expand()
 		} else if n < el.size>>1 {
+			//事件队列缩容
 			el.shrink()
 		}
 	}

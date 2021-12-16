@@ -30,6 +30,7 @@ const (
 	// MinPollEventsCap is the minimum limitation of events that the poller can process.
 	MinPollEventsCap = 32
 	// MaxAsyncTasksAtOneTime is the maximum amount of asynchronous tasks that the event-loop will process at one time.
+	////MaxAsyncTasksAtOneTime是事件循环一次将处理的异步任务的最大数量。
 	MaxAsyncTasksAtOneTime = 256
 	// ErrEvents represents exceptional events that are not read/write, like socket being closed,
 	// reading/writing from/to a closed socket, etc.

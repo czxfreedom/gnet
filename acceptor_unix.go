@@ -47,10 +47,10 @@ func (svr *server) accept(fd int, _ netpoll.IOEvent) error {
 		err = socket.SetKeepAlive(nfd, int(svr.opts.TCPKeepAlive/time.Second))
 		logging.Error(err)
 	}
-
+	//接收到客户端的链接,从负载均衡里面取一个事件循环, 然后将客户端的文件描述符 注册到事件循环中
 	el := svr.lb.next(remoteAddr)
 	c := newTCPConn(nfd, el, sa, svr.opts.Codec, el.ln.addr, remoteAddr)
-
+	//往紧急队列发布一个注册任务
 	err = el.poller.UrgentTrigger(el.register, c)
 	if err != nil {
 		_ = unix.Close(nfd)

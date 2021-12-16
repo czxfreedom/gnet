@@ -29,13 +29,13 @@ import (
 )
 
 type server struct {
-	ln           *listener          // the listener for accepting new connections
-	lb           loadBalancer       // event-loops for handling events
+	ln           *listener          // 用于接受新连接的侦听器
+	lb           loadBalancer       // 用于处理事件的事件循环
 	wg           sync.WaitGroup     // event-loop close WaitGroup
 	opts         *Options           // options with server
-	once         sync.Once          // make sure only signalShutdown once
-	cond         *sync.Cond         // shutdown signaler
-	mainLoop     *eventloop         // main event-loop for accepting connections
+	once         sync.Once          // 确保只关闭一次
+	cond         *sync.Cond         // shutdown signaler 关机的信号
+	mainLoop     *eventloop         // 用于接受连接的主事件循环
 	inShutdown   int32              // whether the server is in shutdown
 	tickerCtx    context.Context    // context for ticker
 	cancelTicker context.CancelFunc // function to stop the ticker
@@ -144,6 +144,7 @@ func (svr *server) activateReactors(numEventLoop int) error {
 			el.buffer = make([]byte, svr.opts.ReadBufferCap)
 			el.connections = make(map[int]*conn)
 			el.eventHandler = svr.eventHandler
+			//往负载均衡里面注入事件循环
 			svr.lb.register(el)
 		} else {
 			return err
@@ -279,6 +280,7 @@ func serve(eventHandler EventHandler, listener *listener, options *Options, prot
 		ReusePort:    options.ReusePort,
 		TCPKeepAlive: options.TCPKeepAlive,
 	}
+	//执行回调函数
 	switch svr.eventHandler.OnInitComplete(s) {
 	case None:
 	case Shutdown:

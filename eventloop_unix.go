@@ -96,6 +96,7 @@ func (el *eventloop) open(c *conn) error {
 	c.opened = true
 	el.addConn(1)
 
+	//执行回调函数
 	out, action := el.eventHandler.OnOpened(c)
 	if out != nil {
 		if err := c.open(out); err != nil {
@@ -123,6 +124,7 @@ func (el *eventloop) read(c *conn) error {
 
 	var packet []byte
 	for packet, err = c.read(); err == nil; packet, err = c.read() {
+		//执行回调函数
 		out, action := el.eventHandler.React(packet, c)
 		if out != nil {
 			// Encode data and try to write it back to the peer, this attempt is based on a fact:

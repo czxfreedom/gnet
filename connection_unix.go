@@ -46,7 +46,7 @@ type conn struct {
 	remoteAddr     net.Addr                // remote addr
 	inboundBuffer  *ringbuffer.RingBuffer  // buffer for leftover data from the peer
 	transitBuffer  *bytebuffer.ByteBuffer  // buffer for a complete packet
-	outboundBuffer *mixedbuffer.Buffer     // buffer for data that is eligible to be sent to the peer
+	outboundBuffer *mixedbuffer.Buffer     // 用于有资格发送到对等方的数据的缓冲区
 	pollAttachment *netpoll.PollAttachment // connection attachment for poller
 }
 

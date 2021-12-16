@@ -205,6 +205,9 @@ type (
 	// EventServer is a built-in implementation of EventHandler which sets up each method with a default implementation,
 	// you can compose it with your own implementation of EventHandler when you don't want to implement all methods
 	// in EventHandler.
+	////EventServer是EventHandler的内置实现，它使用默认实现设置每个方法，
+	////当您不想实现所有方法时，可以使用自己的EventHandler实现来编写它
+	////在EventHandler中。
 	EventServer struct{}
 )
 
