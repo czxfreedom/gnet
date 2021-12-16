@@ -34,11 +34,11 @@ import (
 // Poller represents a poller which is in charge of monitoring file-descriptors.
 type Poller struct {
 	fd                  int    // epoll fd
-	wfd                 int    // wake fd
-	wfdBuf              []byte // wfd buffer to read packet
+	wfd                 int    // wake fd 唤醒的文件描述符
+	wfdBuf              []byte // wfd buffer to read packet 用于读取数据包的wfd缓冲区
 	netpollWakeSig      int32
-	asyncTaskQueue      queue.AsyncTaskQueue // queue with low priority
-	priorAsyncTaskQueue queue.AsyncTaskQueue // queue with high priority
+	asyncTaskQueue      queue.AsyncTaskQueue // queue with low priority  低优先级队列
+	priorAsyncTaskQueue queue.AsyncTaskQueue // queue with high priority 高优先级队列
 }
 
 // OpenPoller instantiates a poller.
@@ -86,6 +86,10 @@ var (
 //
 // Note that priorAsyncTaskQueue is a queue with high-priority and its size is expected to be small,
 // so only those urgent tasks should be put into this queue.
+////UrgentTrigger将任务放入priorAsyncTaskQueue并唤醒正在等待网络事件的轮询器，
+////然后轮询器将从priorAsyncTaskQueue获取任务并运行它们。
+////请注意，priorAsyncTaskQueue是一个具有高优先级的队列，其大小预计较小，
+////因此，只有那些紧急任务才应放入此队列。
 func (p *Poller) UrgentTrigger(fn queue.TaskFunc, arg interface{}) (err error) {
 	task := queue.GetTask()
 	task.Run, task.Arg = fn, arg
@@ -101,6 +105,9 @@ func (p *Poller) UrgentTrigger(fn queue.TaskFunc, arg interface{}) (err error) {
 // call this method when the task is not so urgent, for instance writing data back to the peer.
 //
 // Note that asyncTaskQueue is a queue with low-priority whose size may grow large and tasks in it may backlog.
+//触发器类似于UrgentTrigger，但它将任务放入asyncTaskQueue，
+//当任务不是很紧急时调用此方法，例如将数据写回对等方。
+//请注意，asyncTaskQueue是一个低优先级队列，其大小可能会变大，其中的任务可能会积压。
 func (p *Poller) Trigger(fn queue.TaskFunc, arg interface{}) (err error) {
 	task := queue.GetTask()
 	task.Run, task.Arg = fn, arg
@@ -113,6 +120,7 @@ func (p *Poller) Trigger(fn queue.TaskFunc, arg interface{}) (err error) {
 }
 
 // Polling blocks the current goroutine, waiting for network-events.
+////轮询阻塞当前goroutine，等待网络事件。
 func (p *Poller) Polling(callback func(fd int, ev uint32) error) error {
 	el := newEventList(InitPollEventsCap)
 	var wakenUp bool

@@ -48,10 +48,16 @@ type Options struct {
 	// then you must take care with synchronizing memory between all event callbacks, otherwise,
 	// it will run the server with single thread. The number of threads in the server will be automatically
 	// assigned to the value of logical CPUs usable by the current process.
+	//Multicore表示是否使用多核有效创建服务器，如果是，
+	//然后必须注意在所有事件回调之间同步内存，否则，
+	//它将使用单线程运行服务器。服务器中的线程数将自动更改
+	//分配给当前进程可用的逻辑CPU的值。
 	Multicore bool
 
 	// NumEventLoop is set up to start the given number of event-loop goroutine.
 	// Note: Setting up NumEventLoop will override Multicore.
+	//NumEventLoop设置为启动给定数量的事件循环goroutine。
+	//注意：设置NumEventLoop将覆盖多核。
 	NumEventLoop int
 
 	// LB represents the load-balancing algorithm used when assigning new connections.
@@ -63,6 +69,7 @@ type Options struct {
 	ReuseAddr bool
 
 	// ReusePort indicates whether to set up the SO_REUSEPORT socket option.
+	//重用端口
 	ReusePort bool
 
 	// ============================= Options for both server-side and client-side =============================
@@ -72,15 +79,23 @@ type Options struct {
 	//
 	// Note that ReadBufferCap will always be converted to the least power of two integer value greater than
 	// or equal to its real amount.
+
+	//请注意，ReadBufferCap将始终转换为大于的两个整数值的最小幂
+	//或等于其实际数值。
 	ReadBufferCap int
 
 	// LockOSThread is used to determine whether each I/O event-loop is associated to an OS thread, it is useful when you
 	// need some kind of mechanisms like thread local storage, or invoke certain C libraries (such as graphics lib: GLib)
 	// that require thread-level manipulation via cgo, or want all I/O event-loops to actually run in parallel for a
 	// potential higher performance.
+	//LockOSThread用于确定每个I/O事件循环是否与OS线程相关联，在
+	//需要某种机制，如线程本地存储，或调用某些C库（如graphics lib:GLib）
+	//需要通过cgo进行线程级操作，或者希望所有I/O事件循环实际并行运行一段时间
+	//潜在的更高的性能。
 	LockOSThread bool
 
 	// Ticker indicates whether the ticker has been set up.
+	//Ticker指示是否已设置该Ticker。
 	Ticker bool
 
 	// TCPKeepAlive sets up a duration for (SO_KEEPALIVE) socket option.
@@ -91,6 +106,10 @@ type Options struct {
 	//
 	// The default is true (no delay), meaning that data is sent
 	// as soon as possible after a write operation.
+	////TCPNoDelay控制操作系统是否应延迟
+	////希望发送更少数据包的数据包传输（Nagle算法）。
+	////默认值为true（无延迟），表示发送数据
+	////在写操作后尽快。
 	TCPNoDelay TCPSocketOpt
 
 	// SocketRecvBuffer sets the maximum socket receive buffer in bytes.
@@ -107,6 +126,10 @@ type Options struct {
 	// you own logger during the lifetime by implementing the following log.Logger interface.
 	//
 	// Note that this option can be overridden by the option Logger.
+	//LogPath将写入日志的本地路径，这是设置日志的最简单方法，
+	//gnet用这个给定的日志路径实例化一个默认的uber go/zap记录器，您也可以使用
+	//通过实现以下日志，您可以在生命周期内拥有记录器。记录器接口。
+	//请注意，此选项可由选项记录器覆盖。
 	LogPath string
 
 	// LogLevel indicates the logging level, it should be used along with LogPath.

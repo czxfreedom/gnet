@@ -151,6 +151,7 @@ func (svr *server) activateReactors(numEventLoop int) error {
 	}
 
 	// Start sub reactors in background.
+	//开启子reactors
 	svr.startSubReactors()
 
 	if p, err := netpoll.OpenPoller(); err == nil {
@@ -166,6 +167,7 @@ func (svr *server) activateReactors(numEventLoop int) error {
 		svr.mainLoop = el
 
 		// Start main reactor in background.
+		//开启主reactor
 		svr.wg.Add(1)
 		go func() {
 			el.activateMainReactor(svr.opts.LockOSThread)
@@ -241,6 +243,7 @@ func serve(eventHandler EventHandler, listener *listener, options *Options, prot
 	if options.Multicore {
 		numEventLoop = runtime.NumCPU()
 	}
+	//numEventLoop会覆盖 multiCore
 	if options.NumEventLoop > 0 {
 		numEventLoop = options.NumEventLoop
 	}
@@ -264,6 +267,7 @@ func serve(eventHandler EventHandler, listener *listener, options *Options, prot
 		svr.tickerCtx, svr.cancelTicker = context.WithCancel(context.Background())
 	}
 	if options.Codec == nil {
+		//默认编解码器
 		svr.opts.Codec = new(BuiltInFrameCodec)
 	}
 
